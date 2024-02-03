@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class FavouritScreen extends StatefulWidget {
   const FavouritScreen({super.key});
@@ -8,7 +9,7 @@ class FavouritScreen extends StatefulWidget {
 }
 
 class _FavouritScreenState extends State<FavouritScreen> {
-  final tips = [];
+  List favTips = [];
 
   // display tips detail alert dialog
   void _showTipsDetailDialog(tip, description, tipNo) {
@@ -25,7 +26,7 @@ class _FavouritScreenState extends State<FavouritScreen> {
                 size: 50,
                 color: Colors.greenAccent,
               ),
-              Divider(),
+              const Divider(),
               Text(
                 'Tip # $tipNo',
                 style:
@@ -48,6 +49,41 @@ class _FavouritScreenState extends State<FavouritScreen> {
     );
   }
 
+  void getFavTips() async {
+    // get the favourite tips from the database
+    List tips = await Hive.box('drippsafe_db').get('tips');
+    // filter the tips to get the favourite ones
+    List filteredTips = tips.where((tip) => tip['favourite'] == true).toList();
+    setState(() {
+      favTips = filteredTips;
+    });
+  }
+
+  void removeFavoriteTip(id) {
+    // change the favourite status of the tip in the box to false
+    var mybox = Hive.box('drippsafe_db');
+    var tipsData = mybox.get('tips').toList();
+    var index = tipsData.indexWhere((tip) => tip['id'] == id);
+    tipsData[index]['favourite'] = false;
+    mybox.put('tips', tipsData);
+    // show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Tip removed from favourites!'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        width: MediaQuery.of(context).size.width * 0.8,
+      ),
+    );
+    getFavTips();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getFavTips();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +94,7 @@ class _FavouritScreenState extends State<FavouritScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: tips.isEmpty
+        child: favTips.isEmpty
             ? const Center(
                 child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -79,13 +115,13 @@ class _FavouritScreenState extends State<FavouritScreen> {
                   ),
                   Expanded(
                     child: ListView.builder(
-                      itemCount: tips.length,
+                      itemCount: favTips.length,
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () => _showTipsDetailDialog(
-                            tips[index]["tip"],
-                            tips[index]["description"],
-                            index + 1,
+                            favTips[index]["title"],
+                            favTips[index]["description"],
+                            favTips[index]["id"],
                           ),
                           child: Card(
                             elevation: 2,
@@ -98,7 +134,8 @@ class _FavouritScreenState extends State<FavouritScreen> {
                                     children: [
                                       Icon(
                                         Icons.lightbulb,
-                                        color: Colors.pink[500],
+                                        color:
+                                            Color.fromARGB(255, 110, 177, 66),
                                         size: 40,
                                       ),
                                       Column(
@@ -106,19 +143,30 @@ class _FavouritScreenState extends State<FavouritScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "Tip #${index + 1}",
+                                            "Tip #${favTips[index]["id"]}",
                                             style: const TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           Text(
-                                            tips[index]["tip"]!,
+                                            favTips[index]["title"],
                                             style: const TextStyle(
                                               fontSize: 16,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
+                                      ),
+                                      const Spacer(),
+                                      IconButton(
+                                        onPressed: () {
+                                          removeFavoriteTip(
+                                              favTips[index]["id"]);
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
                                       ),
                                     ],
                                   ),
