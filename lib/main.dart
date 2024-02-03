@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 void main() async {
   // initialize the hive
   await Hive.initFlutter();
+  //  Hive.registerAdapter(TipModelAdapter()); // Add this line
 
   // open the box
   var box = Hive.openBox('drippsafe_db');
