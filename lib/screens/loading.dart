@@ -2,7 +2,6 @@
 
 import 'package:drippsafe/screens/onboarding.dart';
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
