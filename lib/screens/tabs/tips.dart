@@ -101,7 +101,7 @@ class _TipScreenState extends State<TipScreen> {
     // get the tips data from the box
     List tipsData = mybox.get('tips').toList();
 
-    print(tipsData);
+    
     setState(() {
       tips = tipsData;
     });
