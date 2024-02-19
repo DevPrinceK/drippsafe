@@ -3,11 +3,19 @@ import 'package:flutter/material.dart';
 class InfoCircle extends StatelessWidget {
   final bool active;
   final String day;
-  const InfoCircle({super.key, required this.active, required this.day});
+  final Color? boxColor;
+  final Color? textColor;
+  const InfoCircle({
+    super.key,
+    required this.active,
+    required this.day,
+    required this.boxColor,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    print(day);
+    
     return Container(
       height: 70,
       width: 70,
