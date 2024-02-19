@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:drippsafe/screens/constants/widgets/infocircle.dart';
 import 'package:drippsafe/screens/constants/widgets/infocard.dart';
 import 'package:drippsafe/screens/constants/widgets/tipcard.dart';
@@ -18,18 +16,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String username = 'Ghost';
   var box = Hive.box('drippsafe_db');
 
-  // get username from hive
-  void getUsername() {
+  void calculateNextPeriodDates() {
+    var box = Hive.box('drippsafe_db');
     var settings = box.get('settings');
-    setState(() {
-      username = settings['name'] ?? 'Ghost';
-    });
+    DateTime? startDate = settings['startDate'];
+    DateTime? endDate = settings['endDate'];
+    if (startDate != null && endDate != null) {
+      // Assuming a menstrual cycle of 28 days
+      int cycleLength = 28;
+
+      // Calculate the days between the start and end dates
+      int daysBetween = endDate.difference(startDate).inDays;
+
+      // Calculate the next start date and end date based on the average cycle length
+      var nextStartDate = startDate.add(Duration(days: cycleLength + 1));
+      var nextEndDate = nextStartDate.add(Duration(days: daysBetween));
+
+      // Save the next start date and end date to the settings
+      settings['nextStartDate'] = nextStartDate;
+      settings['nextEndDate'] = nextEndDate;
+      box.put('settings', settings);
+      setState(() {
+        username = settings['name'] ?? 'Ghost';
+      });
+      print('settings: $settings');
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    getUsername();
+    calculateNextPeriodDates();
   }
 
   @override
@@ -125,45 +142,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // next 7 days
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                // chil
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    SizedBox(width: 10),
-                    InfoCircle(
-                      active: true,
-                      day: (currentDayInt).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: true,
-                      day: (currentDayInt + 1).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: true,
-                      day: (currentDayInt + 2).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: false,
-                      day: (currentDayInt + 3).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: false,
-                      day: (currentDayInt + 4).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: false,
-                      day: (currentDayInt + 5).toString(),
-                    ),
-                    SizedBox(width: 5),
-                    InfoCircle(
-                      active: false,
-                      day: (currentDayInt + 6).toString(),
-                    ),
-                  ],
+                  children: List.generate(
+                    7,
+                    (index) {
+                      var settings = box.get('settings');
+                      DateTime? nextStartDate = settings['nextStartDate'];
+                      DateTime? nextEndDate = settings['nextEndDate'];
+
+                      DateTime nextDate = now.add(Duration(days: index));
+                      String nextDay = DateFormat('dd').format(nextDate);
+
+                      // check if the next date is within the next period
+                      if (nextDate.isAfter(nextStartDate!) &&
+                          nextDate.isBefore(nextEndDate!)) {
+                        print("$nextDate is within the next period");
+                        return InfoCircle(
+                          day: nextDay,
+                          active: true,
+                        );
+                      } else {
+                        print("$nextDate is not within the next period");
+                        return InfoCircle(
+                          day: nextDay,
+                          active: false,
+                        );
+                      }
+
+                      // not needed now
+                      // String nextMonth = DateFormat('MM').format(nextDate);
+                      // String nextYear = DateFormat('yyyy').format(nextDate);
+                      // return InfoCircle(
+                      //   day: nextDay,
+                      //   active: index == 6 ? true : false,
+                      // );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

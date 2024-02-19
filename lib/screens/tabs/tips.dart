@@ -152,7 +152,10 @@ class _TipScreenState extends State<TipScreen> {
                                 children: [
                                   Icon(
                                     Icons.lightbulb,
-                                    color: Colors.pink[500],
+                                    color: tips[index]['favourite']
+                                        ? const Color.fromARGB(
+                                            255, 110, 177, 66)
+                                        : Colors.grey,
                                     size: 40,
                                   ),
                                   Column(

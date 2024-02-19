@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:drippsafe/screens/constants/widgets/custombtn.dart';
 import 'package:drippsafe/screens/constants/widgets/textFields.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +74,20 @@ class _SettingScreenState extends State<SettingScreen> {
   final mybox = Hive.box('drippsafe_db');
 
   // save settings
-  bool saveSettings(name, startDate, endDate) {
+  void saveSettings(name, startDate, endDate) {
+    // check if the data is not empty
+    if (name.isEmpty || startDate == null || endDate == null) {
+      // show snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('All fields are required'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          width: MediaQuery.of(context).size.width * 0.8,
+        ),
+      );
+      return;
+    }
     try {
       mybox.put('settings', {
         'name': name,
@@ -85,11 +96,30 @@ class _SettingScreenState extends State<SettingScreen> {
       });
       // test print the data
       print(mybox.get('settings'));
-      return true;
+      _showSuccessDialog(true);
+      return;
     } catch (e) {
       print(e);
-      return false;
+      _showSuccessDialog(false);
+      return;
     }
+  }
+
+  void getSettings() {
+    var settings = mybox.get('settings');
+    if (settings != null) {
+      setState(() {
+        _nameController.text = settings['name'];
+        _startDate = settings['startDate'];
+        _endDate = settings['endDate'];
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getSettings();
   }
 
   @override
@@ -160,16 +190,11 @@ class _SettingScreenState extends State<SettingScreen> {
             CustomButton(
               text: 'Save',
               onPressed: () {
-                bool isSaved = saveSettings(
+                saveSettings(
                   _nameController.text,
                   _startDate,
                   _endDate,
                 );
-                if (isSaved) {
-                  return _showSuccessDialog(true);
-                } else {
-                  return _showSuccessDialog(false);
-                }
               },
             ),
             const SizedBox(height: 20),

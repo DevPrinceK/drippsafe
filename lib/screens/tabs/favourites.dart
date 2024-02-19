@@ -132,7 +132,7 @@ class _FavouritScreenState extends State<FavouritScreen> {
                                   padding: const EdgeInsets.all(20.0),
                                   child: Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.lightbulb,
                                         color:
                                             Color.fromARGB(255, 110, 177, 66),

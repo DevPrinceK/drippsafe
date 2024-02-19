@@ -9,7 +9,7 @@ Widget CustomButton({
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          primary: Colors.pink[900]!,
+          backgroundColor: Colors.pink[900]!,
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
