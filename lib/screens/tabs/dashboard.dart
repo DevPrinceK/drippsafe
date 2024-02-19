@@ -1,3 +1,4 @@
+import 'package:drippsafe/screens/constants/widgets/info_rect.dart';
 import 'package:drippsafe/screens/constants/widgets/infocircle.dart';
 import 'package:drippsafe/screens/constants/widgets/infocard.dart';
 import 'package:drippsafe/screens/constants/widgets/tipcard.dart';
@@ -39,7 +40,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         username = settings['name'] ?? 'Ghost';
       });
-      print('settings: $settings');
     }
   }
 
@@ -121,13 +121,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 20),
               const Center(
                 child: Text(
-                  "Your next period is in 6 days",
+                  "This is what the colors mean",
                   style: TextStyle(
                     fontSize: 16,
                     // color: Colors.pink,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InfoRect(title: "Period", color: Colors.pink[500]),
+                  InfoRect(title: "Ovulation", color: Colors.green),
+                  InfoRect(title: "Safe", color: Colors.grey[300]),
+                ],
               ),
               const SizedBox(height: 20),
               Text(
@@ -154,29 +163,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       DateTime nextDate = now.add(Duration(days: index));
                       String nextDay = DateFormat('dd').format(nextDate);
 
+                      // ovulation period
+                      DateTime ovulStart =
+                          nextStartDate!.add(Duration(days: 14));
+
+                      DateTime ovulEnd = ovulStart.add(Duration(days: 6));
+
                       // check if the next date is within the next period
                       if (nextDate.isAfter(nextStartDate!) &&
                           nextDate.isBefore(nextEndDate!)) {
-                        print("$nextDate is within the next period");
                         return InfoCircle(
                           day: nextDay,
                           active: true,
+                          boxColor: Colors.pink[500],
+                          textColor: Colors.white,
+                        );
+                      } else if (nextDate.isAfter(ovulStart!) &&
+                          nextDate.isBefore(ovulEnd!)) {
+                        return InfoCircle(
+                          day: nextDay,
+                          active: true,
+                          boxColor: Colors.green,
+                          textColor: Colors.black,
                         );
                       } else {
-                        print("$nextDate is not within the next period");
                         return InfoCircle(
                           day: nextDay,
                           active: false,
+                          boxColor: Colors.grey[300],
+                          textColor: Colors.black,
                         );
                       }
-
-                      // not needed now
-                      // String nextMonth = DateFormat('MM').format(nextDate);
-                      // String nextYear = DateFormat('yyyy').format(nextDate);
-                      // return InfoCircle(
-                      //   day: nextDay,
-                      //   active: index == 6 ? true : false,
-                      // );
                     },
                   ),
                 ),
