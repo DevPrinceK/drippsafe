@@ -95,11 +95,11 @@ class _SettingScreenState extends State<SettingScreen> {
         'endDate': endDate,
       });
       // test print the data
-      print(mybox.get('settings'));
+      
       _showSuccessDialog(true);
       return;
     } catch (e) {
-      print(e);
+      
       _showSuccessDialog(false);
       return;
     }
