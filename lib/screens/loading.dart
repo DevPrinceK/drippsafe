@@ -59,7 +59,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
               child: AnimatedTextKit(
                 animatedTexts: [
                   TypewriterAnimatedText(
-                    's i g n e e',
+                    'Afia Kyeremaah-Yeboah',
                   ),
                 ],
               ),
