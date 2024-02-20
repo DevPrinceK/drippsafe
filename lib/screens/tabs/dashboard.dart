@@ -95,6 +95,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  const Tooltip(
+                    message: "Days till next period",
+                    child: InfoCard(
+                      title: 'Year',
+                      value: '2024',
+                    ),
+                  ),
                   Tooltip(
                     message: "Current month",
                     child: InfoCard(
@@ -105,15 +112,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Tooltip(
                     message: "Current day",
                     child: InfoCard(
-                      title: 'Days',
+                      title: 'Day',
                       value: currentDay,
-                    ),
-                  ),
-                  const Tooltip(
-                    message: "Days till next period",
-                    child: InfoCard(
-                      title: 'Left',
-                      value: '6',
                     ),
                   ),
                 ],

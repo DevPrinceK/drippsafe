@@ -26,6 +26,7 @@ dependencies:
   path_provider:
   flutter_onboarding_slider:
   animated_text_kit: ^4.2.2
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

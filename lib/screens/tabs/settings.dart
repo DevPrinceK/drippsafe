@@ -13,6 +13,7 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _loadingNameController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -74,9 +75,12 @@ class _SettingScreenState extends State<SettingScreen> {
   final mybox = Hive.box('drippsafe_db');
 
   // save settings
-  void saveSettings(name, startDate, endDate) {
+  void saveSettings(name, startDate, endDate, loadingName) {
     // check if the data is not empty
-    if (name.isEmpty || startDate == null || endDate == null) {
+    if (name.isEmpty ||
+        startDate == null ||
+        endDate == null ||
+        loadingName.isEmpty) {
       // show snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -93,13 +97,13 @@ class _SettingScreenState extends State<SettingScreen> {
         'name': name,
         'startDate': startDate,
         'endDate': endDate,
+        'loadingName': loadingName,
       });
       // test print the data
-      
+
       _showSuccessDialog(true);
       return;
     } catch (e) {
-      
       _showSuccessDialog(false);
       return;
     }
@@ -112,6 +116,8 @@ class _SettingScreenState extends State<SettingScreen> {
         _nameController.text = settings['name'];
         _startDate = settings['startDate'];
         _endDate = settings['endDate'];
+        _loadingNameController.text =
+            settings['loadingName'] ?? 'Afia Kyeremaah-Yeboah';
       });
     }
   }
@@ -185,6 +191,15 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            const Divider(),
+            // loading name
+            CustomTextField(
+              controller: _loadingNameController,
+              hintText: 'e.g. Afia Kyeremaah-Yeboah',
+              labelText: 'What name should we display on loading?',
+              keyboardType: TextInputType.name,
+            ),
             const Spacer(),
             // save button
             CustomButton(
@@ -194,6 +209,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   _nameController.text,
                   _startDate,
                   _endDate,
+                  _loadingNameController.text,
                 );
               },
             ),
