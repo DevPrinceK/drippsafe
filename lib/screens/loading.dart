@@ -14,11 +14,11 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   String loadingName = '';
 
-  Future<void> getLoadingName() async {
+  void getLoadingName() {
     // hive db
-    var mybox = await Hive.box('drippsafe_db');
+    var mybox = Hive.box('drippsafe_db');
     // get the name from the box
-    var settings = mybox.get('settings');
+    var settings = mybox.get('settings') ?? {};
     try {
       var lname = settings['name'];
       if (lname != null) {
