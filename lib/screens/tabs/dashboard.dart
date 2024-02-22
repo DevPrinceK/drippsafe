@@ -108,7 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         foregroundColor: Colors.white,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Tooltip(
                     message: "Days till next period",
@@ -170,9 +170,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  InfoRect(title: "Period", color: Colors.pink[500]),
-                  InfoRect(title: "Ovulation", color: Colors.green),
-                  InfoRect(title: "Safe", color: Colors.grey[300]),
+                  Tooltip(
+                    message: "Red circles means period",
+                    child: InfoRect(
+                      title: "Period",
+                      color: Colors.pink[500],
+                    ),
+                  ),
+                  Tooltip(
+                    message: "Green circles means ovulation",
+                    child: InfoRect(title: "Ovulation", color: Colors.green),
+                  ),
+                  Tooltip(
+                    message: "Grey circles means safe",
+                    child: InfoRect(title: "Safe", color: Colors.grey[300]),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
