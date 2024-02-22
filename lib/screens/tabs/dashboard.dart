@@ -15,11 +15,12 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String username = 'Ghost';
+  bool noSetup = true;
   var box = Hive.box('drippsafe_db');
 
   void calculateNextPeriodDates() {
     var box = Hive.box('drippsafe_db');
-    var settings = box.get('settings');
+    var settings = box.get('settings', defaultValue: {});
     DateTime? startDate = settings['startDate'];
     DateTime? endDate = settings['endDate'];
     if (startDate != null && endDate != null) {
@@ -34,19 +35,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
       var nextEndDate = nextStartDate.add(Duration(days: daysBetween));
 
       // Save the next start date and end date to the settings
-      settings['nextStartDate'] = nextStartDate;
-      settings['nextEndDate'] = nextEndDate;
-      box.put('settings', settings);
+      try {
+        settings['nextStartDate'] = nextStartDate;
+        settings['nextEndDate'] = nextEndDate;
+        box.put('settings', settings);
+        setState(() {
+          noSetup = false;
+        });
+      } catch (e) {
+        print(e);
+        setState(() {
+          noSetup = true;
+        });
+      }
       setState(() {
         username = settings['name'] ?? 'Ghost';
       });
     }
   }
 
+  // show dismissible snackbar
+  void showDismissableSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        // width: MediaQuery.of(context).size.width * 0.9,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
+        content: Center(child: Text(message)),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     calculateNextPeriodDates();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (box.get('settings') == null) {
+        showDismissableSnackBar(context, "Configure your app in Settings");
+      }
+    });
   }
 
   @override
@@ -156,33 +193,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: List.generate(
                     7,
                     (index) {
-                      var settings = box.get('settings');
+                      var settings = box.get(
+                        'settings',
+                        defaultValue: {
+                          'nextStartDate': now,
+                          'nextEndDate': now.add(const Duration(days: 5)),
+                          'startDate': now.add(const Duration(days: 5)),
+                          'endDate': now.add(const Duration(days: 10)),
+                        },
+                      );
                       DateTime? nextStartDate = settings['nextStartDate'];
                       DateTime? nextEndDate = settings['nextEndDate'];
+                      DateTime? startDate = settings['startDate'];
+                      DateTime? endDate = settings['endDate'];
 
                       DateTime nextDate = now.add(Duration(days: index));
                       String nextDay = DateFormat('dd').format(nextDate);
 
-                      // ovulation period
-                      DateTime ovulStart =
-                          nextStartDate!.add(Duration(days: 14));
+                      // current ovulation period
+                      DateTime currentOvulStart =
+                          startDate!.add(const Duration(days: 14));
+                      DateTime currentOvulEnd =
+                          currentOvulStart.add(const Duration(days: 6));
 
-                      DateTime ovulEnd = ovulStart.add(Duration(days: 6));
+                      // next ovulation period
+                      DateTime nextOvulStart =
+                          nextStartDate!.add(const Duration(days: 14));
+
+                      DateTime nextOvulEnd =
+                          nextOvulStart.add(const Duration(days: 6));
+
+                      print("Next Start Date is: $nextStartDate");
+                      print("Next End Date is: $nextEndDate");
+                      print("Ovulation Start Date is: $nextOvulStart");
+                      print("Ovulation End Date is: $nextOvulEnd");
 
                       // check if the next date is within the next period
-                      if (nextDate.isAfter(nextStartDate!) &&
-                          nextDate.isBefore(nextEndDate!)) {
+                      if ((nextDate.isAfter(startDate) &&
+                              nextDate.isBefore(endDate!)) ||
+                          (nextDate.isAfter(nextStartDate) &&
+                              nextDate.isBefore(nextEndDate!))) {
                         return InfoCircle(
                           day: nextDay,
                           active: true,
                           boxColor: Colors.pink[500],
                           textColor: Colors.white,
                         );
-                      } else if (nextDate.isAfter(ovulStart!) &&
-                          nextDate.isBefore(ovulEnd!)) {
+                      } else if ((nextDate.isAfter(currentOvulStart) &&
+                              nextDate.isBefore(currentOvulEnd)) ||
+                          (nextDate.isAfter(nextOvulStart) &&
+                              nextDate.isBefore(nextOvulEnd))) {
                         return InfoCircle(
                           day: nextDay,
-                          active: true,
+                          active: false,
                           boxColor: Colors.green,
                           textColor: Colors.black,
                         );
