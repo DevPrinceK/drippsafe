@@ -86,7 +86,7 @@ class _TipScreenState extends State<TipScreen> {
     List tipsModelData = [];
 
     if (mybox.get('tips') == null || mybox.get('tips').isEmpty) {
-      initialTips.forEach((tip) {
+      for (var tip in initialTips) {
         tipsModelData.add({
           "id": (initialTips.indexOf(tip) + 1).toString(),
           "title": tip['tip'],
@@ -94,14 +94,13 @@ class _TipScreenState extends State<TipScreen> {
           "created_at": DateTime.now().toString(),
           "favourite": false,
         });
-      });
+      }
       mybox.put('tips', tipsModelData);
     }
 
     // get the tips data from the box
     List tipsData = mybox.get('tips').toList();
 
-    
     setState(() {
       tips = tipsData;
     });
@@ -192,14 +191,19 @@ class _TipScreenState extends State<TipScreen> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            // remove the tips from the box
-            var mybox = Hive.box('drippsafe_db');
-            mybox.delete('tips');
-            initializeTips();
+            // snackbar
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Tips Refreshed!'),
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                width: MediaQuery.of(context).size.width * 0.8,
+              ),
+            );
           },
           backgroundColor: Colors.pink[900],
           foregroundColor: Colors.white,
-          child: const Icon(Icons.favorite),
+          child: const Icon(Icons.refresh),
         ));
   }
 }
