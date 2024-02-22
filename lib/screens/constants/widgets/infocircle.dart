@@ -15,12 +15,11 @@ class InfoCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return Container(
       height: 70,
       width: 70,
       decoration: BoxDecoration(
-        color: active ? Colors.pink[500] : Colors.grey[300],
+        color: active ? Colors.pink[500] : boxColor ?? Colors.grey[300],
         shape: BoxShape.circle,
       ),
       child: Center(
