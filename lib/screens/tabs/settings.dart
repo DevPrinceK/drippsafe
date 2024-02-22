@@ -36,42 +36,6 @@ class _SettingScreenState extends State<SettingScreen> {
     }
   }
 
-  // display tips detail alert dialog
-  void _showSuccessDialog(bool isSaved) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset(
-                isSaved
-                    ? 'assets/images/success.png'
-                    : 'assets/images/error.png',
-                width: 100,
-                height: 100,
-              ),
-              Text(
-                isSaved ? 'Saved' : "Not Saved",
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   final mybox = Hive.box('drippsafe_db');
 
   // save settings
@@ -101,10 +65,26 @@ class _SettingScreenState extends State<SettingScreen> {
       });
       // test print the data
 
-      _showSuccessDialog(true);
+      // show snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Settings Saved Successfully'),
+          backgroundColor: Colors.pink[200],
+          behavior: SnackBarBehavior.floating,
+          width: MediaQuery.of(context).size.width * 0.8,
+        ),
+      );
       return;
     } catch (e) {
-      _showSuccessDialog(false);
+      // show snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          width: MediaQuery.of(context).size.width * 0.8,
+        ),
+      );
       return;
     }
   }
