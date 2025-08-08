@@ -1,8 +1,9 @@
+import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/screens/constants/widgets/custombtn.dart';
 import 'package:drippsafe/screens/constants/widgets/textFields.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -14,13 +15,34 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _loadingNameController = TextEditingController();
+  final TextEditingController _cycleLengthController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    final settingsProvider = context.read<SettingsProvider>();
+    final settings = settingsProvider.settings;
+
+    setState(() {
+      _nameController.text = settings.name;
+      _loadingNameController.text = settings.loadingName;
+      _cycleLengthController.text = settings.cycleLength.toString();
+      _startDate = settings.startDate;
+      _endDate = settings.endDate;
+    });
+  }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    DateTime? selectedDate = await showDatePicker(
+    final DateTime? selectedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _startDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
@@ -29,6 +51,10 @@ class _SettingScreenState extends State<SettingScreen> {
       setState(() {
         if (isStartDate) {
           _startDate = selectedDate;
+          // Auto-calculate end date if start date is selected
+          if (_endDate == null || _startDate!.isAfter(_endDate!)) {
+            _endDate = _startDate!.add(const Duration(days: 4));
+          }
         } else {
           _endDate = selectedDate;
         }
@@ -36,76 +62,71 @@ class _SettingScreenState extends State<SettingScreen> {
     }
   }
 
-  final mybox = Hive.box('drippsafe_db');
-
-  // save settings
-  void saveSettings(name, startDate, endDate, loadingName) {
-    // check if the data is not empty
-    if (name.isEmpty ||
-        startDate == null ||
-        endDate == null ||
-        loadingName.isEmpty) {
-      // show snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('All fields are required'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          width: MediaQuery.of(context).size.width * 0.8,
-        ),
-      );
+  Future<void> _saveSettings() async {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
-    try {
-      mybox.put('settings', {
-        'name': name,
-        'startDate': startDate,
-        'endDate': endDate,
-        'loadingName': loadingName,
-      });
-      // test print the data
 
-      // show snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Settings Saved Successfully'),
-          backgroundColor: Colors.pink[200],
-          behavior: SnackBarBehavior.floating,
-          width: MediaQuery.of(context).size.width * 0.8,
-        ),
-      );
+    if (_startDate == null || _endDate == null) {
+      _showErrorSnackBar('Please select both start and end dates');
       return;
+    }
+
+    if (_startDate!.isAfter(_endDate!)) {
+      _showErrorSnackBar('Start date cannot be after end date');
+      return;
+    }
+
+    final cycleLength = int.tryParse(_cycleLengthController.text);
+    if (cycleLength == null || cycleLength < 21 || cycleLength > 35) {
+      _showErrorSnackBar('Cycle length must be between 21 and 35 days');
+      return;
+    }
+
+    try {
+      final settingsProvider = context.read<SettingsProvider>();
+      await settingsProvider.saveSettings(
+        name: _nameController.text.trim(),
+        loadingName: _loadingNameController.text.trim(),
+        startDate: _startDate,
+        endDate: _endDate,
+        cycleLength: cycleLength,
+      );
+
+      _showSuccessSnackBar('Settings saved successfully!');
     } catch (e) {
-      // show snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          width: MediaQuery.of(context).size.width * 0.8,
-        ),
-      );
-      return;
+      _showErrorSnackBar('Failed to save settings: $e');
     }
   }
 
-  void getSettings() {
-    var settings = mybox.get('settings');
-    if (settings != null) {
-      setState(() {
-        _nameController.text = settings['name'];
-        _startDate = settings['startDate'];
-        _endDate = settings['endDate'];
-        _loadingNameController.text =
-            settings['loadingName'] ?? 'Afia Kyeremaah-Yeboah';
-      });
-    }
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
-  void initState() {
-    super.initState();
-    getSettings();
+  void dispose() {
+    _nameController.dispose();
+    _loadingNameController.dispose();
+    _cycleLengthController.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,87 +134,272 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Colors.pink[900],
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      body: Consumer<SettingsProvider>(
+        builder: (context, settingsProvider, child) {
+          if (settingsProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile Section
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Profile',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 16),
+                          CustomTextField(
+                            controller: _nameController,
+                            labelText: 'Your Name',
+                            hintText: 'Enter your name',
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          CustomTextField(
+                            controller: _loadingNameController,
+                            labelText: 'Loading Name',
+                            hintText: 'Name shown on loading screen',
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a loading name';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Period Settings Section
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Period Settings',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Cycle Length
+                          CustomTextField(
+                            controller: _cycleLengthController,
+                            labelText: 'Cycle Length (days)',
+                            hintText: '28',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter cycle length';
+                              }
+                              final length = int.tryParse(value);
+                              if (length == null ||
+                                  length < 21 ||
+                                  length > 35) {
+                                return 'Cycle length must be between 21 and 35 days';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Date Selection
+                          Text(
+                            'Last Period Dates',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildDateButton(
+                                  'Start Date',
+                                  _startDate,
+                                  (date) => _selectDate(context, true),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildDateButton(
+                                  'End Date',
+                                  _endDate,
+                                  (date) => _selectDate(context, false),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          if (_startDate != null && _endDate != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Period length: ${_endDate!.difference(_startDate!).inDays + 1} days',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saveSettings,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'Save Settings',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+
+                  if (settingsProvider.error != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              settingsProvider.error!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDateButton(String label, DateTime? date, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: date != null
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
-              child: Text(
-                "Setup your app here",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 20),
-            // username
-            CustomTextField(
-              controller: _nameController,
-              hintText: 'e.g. Kate',
-              labelText: 'How Should We Call You?',
-              keyboardType: TextInputType.name,
-            ),
-            const SizedBox(height: 20),
-            // start date
-            InkWell(
-              onTap: () => _selectDate(context, true),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Last Month Period Start Date',
-                  hintText: 'Select start date',
-                  border: OutlineInputBorder(),
-                ),
-                child: Text(
-                  _startDate != null
-                      ? DateFormat('yyyy-MM-dd').format(_startDate!)
-                      : 'Select start date',
-                ),
+            const SizedBox(height: 4),
+            Text(
+              date != null
+                  ? DateFormat('MMM dd, yyyy').format(date)
+                  : 'Select date',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: date != null
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Colors.grey,
               ),
             ),
-            const SizedBox(height: 20),
-            // end date
-            InkWell(
-              onTap: () => _selectDate(context, false),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Last Month Period End Date',
-                  hintText: 'Select end date',
-                  border: OutlineInputBorder(),
-                ),
-                child: Text(
-                  _endDate != null
-                      ? DateFormat('yyyy-MM-dd').format(_endDate!)
-                      : 'Select end date',
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Divider(),
-            // loading name
-            CustomTextField(
-              controller: _loadingNameController,
-              hintText: 'e.g. Afia Kyeremaah-Yeboah',
-              labelText: 'What name should we display on loading?',
-              keyboardType: TextInputType.name,
-            ),
-            const Spacer(),
-            // save button
-            CustomButton(
-              text: 'Save',
-              onPressed: () {
-                saveSettings(
-                  _nameController.text,
-                  _startDate,
-                  _endDate,
-                  _loadingNameController.text,
-                );
-              },
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),

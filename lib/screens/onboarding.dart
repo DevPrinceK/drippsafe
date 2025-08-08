@@ -1,10 +1,14 @@
+import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:intro_screen_onboarding_flutter/introduction.dart';
 import 'package:intro_screen_onboarding_flutter/introscreenonboarding.dart';
+import 'package:provider/provider.dart';
 
 class OnboardingScreen extends StatelessWidget {
-  final List<Introduction> list = [
+  const OnboardingScreen({super.key});
+
+  final List<Introduction> list = const [
     Introduction(
       title: 'Period Tracking',
       subTitle: 'Track your period and ovulation with ease and accuracy',
@@ -21,23 +25,28 @@ class OnboardingScreen extends StatelessWidget {
       imageUrl: 'assets/images/menstrual-1.png',
     ),
   ];
+
   @override
   Widget build(BuildContext context) {
     return IntroScreenOnboarding(
-      backgroudColor: const Color(0xFFf9f9f9),
-      foregroundColor: Colors.pink[900],
+      backgroudColor: Theme.of(context).colorScheme.background,
+      foregroundColor: Theme.of(context).colorScheme.primary,
       introductionList: list,
-      onTapSkipButton: () => Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-        (route) => false,
-      ),
-      skipTextStyle: const TextStyle(
-        color: Colors.blueGrey,
+      onTapSkipButton: () => _navigateToHome(context),
+      skipTextStyle: TextStyle(
+        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
         fontSize: 18,
       ),
+    );
+  }
+
+  void _navigateToHome(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+      (route) => false,
     );
   }
 }
