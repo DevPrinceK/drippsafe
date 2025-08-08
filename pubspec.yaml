@@ -19,7 +19,7 @@ dependencies:
   convex_bottom_bar:
   flutter_slidable:
   intl:
-  intro_screen_onboarding_flutter:
+  # intro_screen_onboarding_flutter: ^1.0.0  # Commented out due to compatibility issues
   hive:
   hive_flutter:
   path_provider:
@@ -37,6 +37,9 @@ dependencies:
   # Utilities
   uuid: ^4.2.1
   equatable: ^2.0.5
+  
+  # Override win32 version to fix compatibility issues
+  win32: ^5.3.0
 
 dev_dependencies:
   flutter_test:
