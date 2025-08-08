@@ -23,12 +23,10 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       surface: surfaceColor,
-      background: backgroundColor,
       error: errorColor,
       onPrimary: Colors.white,
       onSecondary: Colors.black,
       onSurface: Colors.black,
-      onBackground: Colors.black,
       onError: Colors.white,
     ),
     appBarTheme: const AppBarTheme(
@@ -110,12 +108,10 @@ class AppTheme {
       primary: darkPrimaryColor,
       secondary: secondaryColor,
       surface: darkSurfaceColor,
-      background: darkBackgroundColor,
       error: errorColor,
       onPrimary: Colors.white,
       onSecondary: Colors.black,
       onSurface: Colors.white,
-      onBackground: Colors.white,
       onError: Colors.white,
     ),
     appBarTheme: const AppBarTheme(
@@ -192,6 +188,7 @@ class AppTheme {
 }
 
 class CustomPageTransitionsBuilder extends PageTransitionsBuilder {
+  const CustomPageTransitionsBuilder();
   @override
   Widget buildTransitions<T>(
     PageRoute<T> route,

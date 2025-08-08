@@ -1,14 +1,12 @@
-import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:intro_screen_onboarding_flutter/introduction.dart';
 import 'package:intro_screen_onboarding_flutter/introscreenonboarding.dart';
-import 'package:provider/provider.dart';
 
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key});
+  OnboardingScreen({super.key});
 
-  final List<Introduction> list = const [
+  final List<Introduction> list = [
     Introduction(
       title: 'Period Tracking',
       subTitle: 'Track your period and ovulation with ease and accuracy',
@@ -29,12 +27,12 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntroScreenOnboarding(
-      backgroudColor: Theme.of(context).colorScheme.background,
+      backgroudColor: Theme.of(context).colorScheme.surface,
       foregroundColor: Theme.of(context).colorScheme.primary,
       introductionList: list,
       onTapSkipButton: () => _navigateToHome(context),
       skipTextStyle: TextStyle(
-        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         fontSize: 18,
       ),
     );

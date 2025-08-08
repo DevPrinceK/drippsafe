@@ -1,3 +1,4 @@
+import 'package:drippsafe/models/user_settings.dart';
 import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/screens/constants/widgets/info_rect.dart';
 import 'package:drippsafe/screens/constants/widgets/infocircle.dart';
@@ -227,7 +228,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final date = DateTime(now.year, now.month, day);
       final isPeriod = settingsProvider.isPeriodDay(date);
       final isOvulation = settingsProvider.isOvulationDay(date);
-      final isSafe = settingsProvider.isSafeDay(date);
 
       Color circleColor;
       if (isPeriod) {
@@ -242,7 +242,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           child: InfoCircle(
             day: day.toString(),
-            color: circleColor,
+            active: isPeriod,
+            boxColor: circleColor,
+            textColor: isPeriod ? Colors.white : Colors.black,
           ),
         ),
       );
@@ -267,14 +269,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             TipCard(
               title: 'Stay Hydrated',
-              description: 'Drink plenty of water throughout the day',
-              icon: Icons.water_drop,
+              imgName: 'assets/images/workout.png',
             ),
             const SizedBox(height: 12),
             TipCard(
               title: 'Exercise Regularly',
-              description: 'Light exercise can help with period symptoms',
-              icon: Icons.fitness_center,
+              imgName: 'assets/images/sleep.png',
             ),
           ],
         ),

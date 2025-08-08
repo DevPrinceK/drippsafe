@@ -1,6 +1,5 @@
 import 'package:drippsafe/providers/settings_provider.dart';
-import 'package:drippsafe/screens/constants/widgets/custombtn.dart';
-import 'package:drippsafe/screens/constants/widgets/textFields.dart';
+import 'package:drippsafe/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -171,6 +170,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             controller: _nameController,
                             labelText: 'Your Name',
                             hintText: 'Enter your name',
+                            keyboardType: TextInputType.text,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Please enter your name';
@@ -183,6 +183,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             controller: _loadingNameController,
                             labelText: 'Loading Name',
                             hintText: 'Name shown on loading screen',
+                            keyboardType: TextInputType.text,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Please enter a loading name';
@@ -250,7 +251,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 child: _buildDateButton(
                                   'Start Date',
                                   _startDate,
-                                  (date) => _selectDate(context, true),
+                                  () => _selectDate(context, true),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -258,7 +259,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 child: _buildDateButton(
                                   'End Date',
                                   _endDate,
-                                  (date) => _selectDate(context, false),
+                                  () => _selectDate(context, false),
                                 ),
                               ),
                             ],
@@ -272,7 +273,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -329,7 +330,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .error
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: Theme.of(context).colorScheme.error,

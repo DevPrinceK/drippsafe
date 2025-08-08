@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:drippsafe/db/hive/initial_data.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';

@@ -74,7 +74,7 @@ class _LoadingScreenState extends State<LoadingScreen>
       context,
       MaterialPageRoute(
         builder: (context) =>
-            isConfigured ? const HomeScreen() : const OnboardingScreen(),
+            isConfigured ? const HomeScreen() : OnboardingScreen(),
       ),
     );
   }
@@ -122,7 +122,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                   style: TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onBackground,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   child: AnimatedTextKit(
                     animatedTexts: [
@@ -163,10 +163,10 @@ class _LoadingScreenState extends State<LoadingScreen>
                 'Loading your safe space...',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onBackground
-                      .withOpacity(0.7),
+                                   color: Theme.of(context)
+                     .colorScheme
+                     .onSurface
+                     .withValues(alpha: 0.7),
                 ),
               ),
             ),

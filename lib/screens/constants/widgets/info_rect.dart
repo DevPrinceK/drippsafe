@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class InfoRect extends StatelessWidget {
-  String title;
-  Color? color;
-  InfoRect({
-    Key? key,
+  final String title;
+  final Color? color;
+  const InfoRect({
+    super.key,
     required this.title,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
