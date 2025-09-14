@@ -32,15 +32,16 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.example.drippsafe"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion  "25.1.8937393"
+    ndkVersion  "26.1.10909125"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // AGP 8.x requires JDK 17. Ensure you have JDK 17 installed and configured.
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {

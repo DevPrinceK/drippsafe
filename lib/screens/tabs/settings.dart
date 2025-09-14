@@ -11,7 +11,8 @@ class SettingScreen extends StatefulWidget {
   State<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class _SettingScreenState extends State<SettingScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _loadingNameController = TextEditingController();
   final TextEditingController _cycleLengthController = TextEditingController();
@@ -120,246 +121,271 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
+  // Consolidated dispose will also dispose background controller below
+
+  AnimationController? _bgController;
+  bool _bgStarted = false;
+
+  void _ensureBgAnimation() {
+    if (_bgController == null) {
+      _bgController = AnimationController(
+          vsync: this, duration: const Duration(seconds: 14));
+    }
+    if (!_bgStarted) {
+      _bgController!.repeat(reverse: true);
+      _bgStarted = true;
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _loadingNameController.dispose();
     _cycleLengthController.dispose();
+    _bgController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _ensureBgAnimation();
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Consumer<SettingsProvider>(
-        builder: (context, settingsProvider, child) {
-          if (settingsProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Profile Section
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Profile',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          CustomTextField(
-                            controller: _nameController,
-                            labelText: 'Your Name',
-                            hintText: 'Enter your name',
-                            keyboardType: TextInputType.text,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your name';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          CustomTextField(
-                            controller: _loadingNameController,
-                            labelText: 'Loading Name',
-                            hintText: 'Name shown on loading screen',
-                            keyboardType: TextInputType.text,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a loading name';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+      extendBody: true,
+      body: Stack(
+        children: [
+          AnimatedBuilder(
+            animation: _bgController!,
+            builder: (_, __) {
+              final t = _bgController!.value;
+              final colors = [
+                Color.lerp(
+                    Colors.pink.shade900, Colors.deepPurple.shade700, t)!,
+                Color.lerp(
+                    Colors.pink.shade400, Colors.indigo.shade500, 1 - t)!,
+              ];
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: colors,
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Period Settings Section
-                  Card(
+                ),
+              );
+            },
+          ),
+          Consumer<SettingsProvider>(
+            builder: (context, settingsProvider, child) {
+              if (settingsProvider.isLoading) {
+                return const Center(
+                    child: CircularProgressIndicator(color: Colors.white));
+              }
+              return CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    elevation: 0,
+                    backgroundColor: theme.colorScheme.surface.withOpacity(.08),
+                    title: const Text('Settings',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                  SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Period Settings',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Cycle Length
-                          CustomTextField(
-                            controller: _cycleLengthController,
-                            labelText: 'Cycle Length (days)',
-                            hintText: '28',
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter cycle length';
-                              }
-                              final length = int.tryParse(value);
-                              if (length == null ||
-                                  length < 21 ||
-                                  length > 35) {
-                                return 'Cycle length must be between 21 and 35 days';
-                              }
-                              return null;
-                            },
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Date Selection
-                          Text(
-                            'Last Period Dates',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildDateButton(
-                                  'Start Date',
-                                  _startDate,
-                                  () => _selectDate(context, true),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _AnimatedSection(
+                              child: _GlassCard(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Profile',
+                                          style: theme.textTheme.titleLarge
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white)),
+                                      const SizedBox(height: 16),
+                                      CustomTextField(
+                                        controller: _nameController,
+                                        labelText: 'Your Name',
+                                        hintText: 'Enter your name',
+                                        keyboardType: TextInputType.text,
+                                        validator: (value) => (value == null ||
+                                                value.trim().isEmpty)
+                                            ? 'Please enter your name'
+                                            : null,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      CustomTextField(
+                                        controller: _loadingNameController,
+                                        labelText: 'Loading Name',
+                                        hintText:
+                                            'Name shown on loading screen',
+                                        keyboardType: TextInputType.text,
+                                        validator: (value) => (value == null ||
+                                                value.trim().isEmpty)
+                                            ? 'Please enter a loading name'
+                                            : null,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDateButton(
-                                  'End Date',
-                                  _endDate,
-                                  () => _selectDate(context, false),
+                            ),
+                            const SizedBox(height: 20),
+                            _AnimatedSection(
+                              delay: .05,
+                              child: _GlassCard(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Period Settings',
+                                          style: theme.textTheme.titleLarge
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white)),
+                                      const SizedBox(height: 16),
+                                      CustomTextField(
+                                        controller: _cycleLengthController,
+                                        labelText: 'Cycle Length (days)',
+                                        hintText: '28',
+                                        keyboardType: TextInputType.number,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty)
+                                            return 'Please enter cycle length';
+                                          final length = int.tryParse(value);
+                                          if (length == null ||
+                                              length < 21 ||
+                                              length > 35)
+                                            return 'Cycle length must be between 21 and 35 days';
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text('Last Period Dates',
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                  color: Colors.white70)),
+                                      const SizedBox(height: 8),
+                                      Row(children: [
+                                        Expanded(
+                                            child: _buildDateButton(
+                                                'Start Date',
+                                                _startDate,
+                                                () => _selectDate(
+                                                    context, true))),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                            child: _buildDateButton(
+                                                'End Date',
+                                                _endDate,
+                                                () => _selectDate(
+                                                    context, false))),
+                                      ]),
+                                      if (_startDate != null &&
+                                          _endDate != null) ...[
+                                        const SizedBox(height: 16),
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.primary
+                                                .withOpacity(.12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                                color: theme.colorScheme.primary
+                                                    .withOpacity(.3)),
+                                          ),
+                                          child: Row(children: [
+                                            Icon(Icons.info_outline,
+                                                color:
+                                                    theme.colorScheme.primary),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                  'Period length: ${_endDate!.difference(_startDate!).inDays + 1} days',
+                                                  style: TextStyle(
+                                                      color: theme
+                                                          .colorScheme.primary,
+                                                      fontWeight:
+                                                          FontWeight.w500)),
+                                            ),
+                                          ]),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            _AnimatedSection(
+                              delay: .1,
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _saveSettings,
+                                  style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18))),
+                                  child: const Text('Save Settings',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ),
+                            ),
+                            if (settingsProvider.error != null) ...[
+                              const SizedBox(height: 20),
+                              _AnimatedSection(
+                                delay: .15,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.error
+                                        .withOpacity(.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: theme.colorScheme.error),
+                                  ),
+                                  child: Row(children: [
+                                    Icon(Icons.error_outline,
+                                        color: theme.colorScheme.error),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: Text(settingsProvider.error!,
+                                            style: TextStyle(
+                                                color:
+                                                    theme.colorScheme.error))),
+                                  ]),
                                 ),
                               ),
                             ],
-                          ),
-
-                          if (_startDate != null && _endDate != null) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Period length: ${_endDate!.difference(_startDate!).inDays + 1} days',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _saveSettings,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text(
-                        'Save Settings',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-
-                  if (settingsProvider.error != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .error
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              settingsProvider.error!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                  ],
+                  ),
                 ],
-              ),
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -372,11 +398,12 @@ class _SettingScreenState extends State<SettingScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: date != null
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey,
-          ),
+              color: date != null
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.white24,
+              width: 1.2),
           borderRadius: BorderRadius.circular(8),
+          color: Colors.white.withOpacity(.08),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,7 +412,7 @@ class _SettingScreenState extends State<SettingScreen> {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Colors.white70,
               ),
             ),
             const SizedBox(height: 4),
@@ -396,14 +423,71 @@ class _SettingScreenState extends State<SettingScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: date != null
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Colors.grey,
+                color: date != null ? Colors.white : Colors.white54,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// Reuse animation & glass card patterns from dashboard
+class _AnimatedSection extends StatefulWidget {
+  final Widget child;
+  final double delay;
+  const _AnimatedSection({required this.child, this.delay = 0, Key? key})
+      : super(key: key);
+  @override
+  State<_AnimatedSection> createState() => _AnimatedSectionState();
+}
+
+class _AnimatedSectionState extends State<_AnimatedSection>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 650));
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slide = Tween(begin: const Offset(0, .12), end: Offset.zero).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration(milliseconds: (widget.delay * 600).round()), () {
+        if (mounted) _controller.forward();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(position: _slide, child: widget.child));
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  const _GlassCard({required this.child, Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withOpacity(.14),
+        border: Border.all(color: Colors.white.withOpacity(.15)),
+      ),
+      child: child,
     );
   }
 }

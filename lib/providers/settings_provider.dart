@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_settings.dart';
+import '../services/cycle_calculator.dart';
 
 class SettingsProvider extends ChangeNotifier {
   UserSettings _settings = const UserSettings();
   bool _isLoading = false;
   String? _error;
+  // Cycle cache for fast date lookups
+  Map<DateTime, CycleDayInfo> _cycleCache = {};
+  static const int _defaultLuteal = 14; // Could be user-configurable later
 
   UserSettings get settings => _settings;
   bool get isLoading => _isLoading;
@@ -21,6 +25,7 @@ class SettingsProvider extends ChangeNotifier {
       if (data != null) {
         _settings = UserSettings.fromJson(Map<String, dynamic>.from(data));
         _calculateNextPeriod();
+        _rebuildCycleCache();
       }
       _error = null;
     } catch (e) {
@@ -54,6 +59,7 @@ class SettingsProvider extends ChangeNotifier {
 
       _settings = updatedSettings;
       _calculateNextPeriod();
+      _rebuildCycleCache();
 
       final box = Hive.box('drippsafe_db');
       await box.put('settings', _settings.toJson());
@@ -83,6 +89,20 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
+  void _rebuildCycleCache() {
+    if (_settings.startDate == null) return;
+    final calc = CycleCalculator(
+      lastPeriodStart: _settings.startDate!,
+      config: CycleCalculatorConfig(
+        cycleLength: _settings.cycleLength,
+        periodLength: _settings.periodLength,
+        lutealLength: _defaultLuteal,
+        cyclesForward: 6,
+      ),
+    );
+    _cycleCache = calc.generate();
+  }
+
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
@@ -94,23 +114,31 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   bool isPeriodDay(DateTime date) {
-    if (_settings.nextStartDate == null || _settings.nextEndDate == null) {
-      return false;
-    }
-    return date.isAfter(
-            _settings.nextStartDate!.subtract(const Duration(days: 1))) &&
-        date.isBefore(_settings.nextEndDate!.add(const Duration(days: 1)));
+    final info = dayInfo(date);
+    return info?.phase == CyclePhase.menstrual;
   }
 
   bool isOvulationDay(DateTime date) {
-    if (_settings.nextStartDate == null) return false;
-    // Ovulation typically occurs 14 days before the next period
-    final ovulationDate =
-        _settings.nextStartDate!.subtract(const Duration(days: 14));
-    return date.isAtSameMomentAs(ovulationDate);
+    final info = dayInfo(date);
+    return info?.phase == CyclePhase.ovulation;
   }
 
   bool isSafeDay(DateTime date) {
-    return !isPeriodDay(date) && !isOvulationDay(date);
+    final info = dayInfo(date);
+    if (info == null) return false;
+    return info.phase == CyclePhase.follicular ||
+        info.phase == CyclePhase.luteal;
   }
+
+  // New API
+  CycleDayInfo? dayInfo(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    return _cycleCache[d];
+  }
+
+  CyclePhase? phaseFor(DateTime date) => dayInfo(date)?.phase;
+
+  DateTime? predictedNextPeriod() => _settings.nextStartDate;
+
+  List<List<DateTime>> monthMatrix(DateTime month) => buildMonthMatrix(month);
 }

@@ -23,7 +23,8 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "7.3.0" apply false
+    // Updated to AGP 8.5.x (compatible with Gradle 8.9 wrapper and >= Flutter min 8.1.1)
+    id "com.android.application" version "8.5.2" apply false
 }
 
 include ":app"
