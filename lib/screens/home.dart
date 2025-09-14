@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:drippsafe/screens/tabs/dashboard.dart';
 import 'package:drippsafe/screens/tabs/favourites.dart';
 import 'package:drippsafe/screens/tabs/settings.dart';

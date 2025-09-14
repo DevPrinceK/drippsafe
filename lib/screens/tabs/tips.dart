@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:math';
 import 'package:drippsafe/db/hive/initial_data.dart';
 import 'package:flutter/material.dart';
@@ -25,12 +27,10 @@ class _TipScreenState extends State<TipScreen> with TickerProviderStateMixin {
   }
 
   void _ensureBgAnimation() {
-    if (_bgController == null) {
-      _bgController = AnimationController(
+    _bgController ??= AnimationController(
         vsync: this,
         duration: const Duration(seconds: 12),
       );
-    }
     if (!_bgStarted) {
       _bgController!.repeat(reverse: true);
       _bgStarted = true;

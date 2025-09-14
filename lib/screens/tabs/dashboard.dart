@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:drippsafe/models/user_settings.dart';
 import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/services/cycle_calculator.dart';
@@ -240,10 +242,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   void _ensureBgAnimation() {
-    if (_bgController == null) {
-      _bgController = AnimationController(
-          vsync: this, duration: const Duration(seconds: 16));
-    }
+    _bgController ??=
+        AnimationController(vsync: this, duration: const Duration(seconds: 16));
     if (!_bgStarted) {
       _bgController!.repeat(reverse: true);
       _bgStarted = true;
@@ -324,18 +324,18 @@ class _DashboardScreenState extends State<DashboardScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _AnimatedSection(
-                                  child: _buildQuickStats(now), delay: .05),
+                                  delay: .05, child: _buildQuickStats(now)),
                               const SizedBox(height: 18),
                               _AnimatedSection(
-                                  child: _buildColorLegend(), delay: .1),
+                                  delay: .1, child: _buildColorLegend()),
                               const SizedBox(height: 18),
                               _AnimatedSection(
+                                  delay: .15,
                                   child:
-                                      _buildCalendarSection(settingsProvider),
-                                  delay: .15),
+                                      _buildCalendarSection(settingsProvider)),
                               const SizedBox(height: 18),
                               _AnimatedSection(
-                                  child: _buildTipsSection(), delay: .2),
+                                  delay: .2, child: _buildTipsSection()),
                               const SizedBox(height: 36),
                             ],
                           ),

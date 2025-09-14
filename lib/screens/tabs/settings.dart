@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:drippsafe/providers/settings_provider.dart';
 import 'package:drippsafe/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
@@ -127,10 +129,8 @@ class _SettingScreenState extends State<SettingScreen>
   bool _bgStarted = false;
 
   void _ensureBgAnimation() {
-    if (_bgController == null) {
-      _bgController = AnimationController(
+    _bgController ??= AnimationController(
           vsync: this, duration: const Duration(seconds: 14));
-    }
     if (!_bgStarted) {
       _bgController!.repeat(reverse: true);
       _bgStarted = true;
@@ -263,13 +263,15 @@ class _SettingScreenState extends State<SettingScreen>
                                         keyboardType: TextInputType.number,
                                         validator: (value) {
                                           if (value == null ||
-                                              value.trim().isEmpty)
+                                              value.trim().isEmpty) {
                                             return 'Please enter cycle length';
+                                          }
                                           final length = int.tryParse(value);
                                           if (length == null ||
                                               length < 21 ||
-                                              length > 35)
+                                              length > 35) {
                                             return 'Cycle length must be between 21 and 35 days';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -410,7 +412,7 @@ class _SettingScreenState extends State<SettingScreen>
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.white70,
               ),

@@ -174,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Image
           Expanded(
             flex: 3,
-            child: Container(
+            child: SizedBox(
               width: double.infinity,
               child: Image.asset(
                 page.imagePath,

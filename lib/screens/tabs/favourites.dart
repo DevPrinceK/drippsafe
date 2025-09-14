@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -24,12 +26,10 @@ class _FavouritScreenState extends State<FavouritScreen>
   }
 
   void _ensureBgAnimation() {
-    if (_bgController == null) {
-      _bgController = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 14),
-      );
-    }
+    _bgController ??= AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 14),
+    );
     if (!_bgStarted) {
       _bgController!.repeat(reverse: true);
       _bgStarted = true;
