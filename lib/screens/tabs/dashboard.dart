@@ -7,6 +7,7 @@ import 'package:drippsafe/screens/constants/widgets/tipcard.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -78,66 +79,90 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: Center(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 28),
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(.12),
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: Colors.white.withOpacity(.18)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: meta.color.withOpacity(.45),
-                      blurRadius: 28,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 8),
-                    )
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 14,
-                            height: 14,
-                            decoration: BoxDecoration(
-                              color: meta.color,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.white, width: 1),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(meta.label,
-                              style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: .4)),
-                          const Spacer(),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close_rounded, size: 20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+                      decoration: BoxDecoration(
+                        // Slightly more opaque layered gradient for readability
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.black.withOpacity(.55),
+                            Colors.black.withOpacity(.48),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                            color: Colors.white.withOpacity(.28), width: 1.1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: meta.color.withOpacity(.50),
+                            blurRadius: 34,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 10),
                           )
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        meta.description,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          height: 1.4,
-                          color: Colors.white70,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: meta.color,
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                        color: Colors.white, width: 1),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(meta.label,
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: .5)),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.close_rounded,
+                                      size: 20, color: Colors.white70),
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              meta.description,
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.46,
+                                color: Colors.white.withOpacity(.90),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '* Educational guidance only; not a diagnostic tool.',
+                              style: TextStyle(
+                                fontSize: 11.2,
+                                height: 1.3,
+                                color: Colors.white.withOpacity(.68),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        '* Educational guidance only; not a diagnostic tool.',
-                        style: TextStyle(fontSize: 11, color: Colors.white54),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
